@@ -44,6 +44,11 @@ target/
 
 # Large file exceptions - Include goose_data and workspace but exclude large model files
 # Include goose_data directory but exclude large files within it
+
+# Include workspace directory
+
+# Large file exceptions - Include goose_data and workspace but exclude large model files
+# Include goose_data directory but exclude large files within it
 !/goose_data/
 /goose_data/**/*.bin
 /goose_data/**/*.gguf
