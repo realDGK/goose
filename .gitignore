@@ -16,7 +16,6 @@ target/
 *.pdb
 
 # Large directories to exclude
-/goose_data/
 /ollama_data/
 /tokenizer_files/
 /target/
@@ -42,3 +41,15 @@ target/
 
 # Backup files
 *.bak
+
+# Large file exceptions - Include goose_data and workspace but exclude large model files
+# Include goose_data directory but exclude large files within it
+!/goose_data/
+/goose_data/**/*.bin
+/goose_data/**/*.gguf
+/goose_data/**/*.onnx
+/goose_data/**/*.model
+/goose_data/**/*.weights
+
+# Include workspace directory
+!/workspace/
