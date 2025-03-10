@@ -1,0 +1,2 @@
+# Copy this file to ~/.config/goose/.env and add your API key
+OPENROUTER_API_KEY=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
