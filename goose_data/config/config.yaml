@@ -46,7 +46,7 @@ providers:
   openrouter:
     api_key: ''
     default: true
-    model: google/gemini-2.0-flash-exp:free
+    model: gemini-2.0-flash-exp
     provider_type: openrouter
-GOOSE_MODEL: google/gemini-2.0-flash-exp:free
+GOOSE_MODEL: gemini-2.0-flash-exp
 GOOSE_PROVIDER: openrouter

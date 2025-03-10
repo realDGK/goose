@@ -58,3 +58,9 @@ target/
 
 # Include workspace directory
 !/workspace/
+
+# Sensitive configuration files
+/goose_data/config/env
+/goose_data/config/*.key
+/goose_data/config/*.token
+/goose_data/config/*.secret
