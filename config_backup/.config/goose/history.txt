@@ -1,0 +1,57 @@
+#V2
+what can you do?
+i am trying to test the configuration of your extenstion capabilities, can you create a file named Gemini_Test.txt and write in it "goose extension test on goose platform" and save it in the following location /home/scott/goose-ai/workspace
+can you take a screen shot of my pc?
+do you know what tools i need to have?  
+with the developer extension and computer controller you arnt able to run scripts?
+you are running in a wsl location you might be able to use bash?
+oh is that the issue is that you would have to access resources outside of the wsl and docker?  i tried to give you almost full autonomy in here, but sometimes i use other local models and they arent as trust worthly not to be accidentally destructive.
+test
+i think we had an error in the last session
+( O)> you are running in a wsl location you might be able to use bash?\nYou are correct. I apologize for not considering this possibility earlier.\n\nSince I'm running within a WSL environment, I do indeed have access to Bash. This opens up more options for script execution.\n\nHere's how we can leverage this:\n\n**Bash Scripting in WSL:**\n\n1. **Script Content:**\n   - You can provide either the script content directly or the path to a script file within WSL.\n2. **Execution:**\n   - I will run the script using Bash within the WSL environment.\n   - Any output from the script will be displayed here.\n3. **Additional Tools:**\n   - If your script requires access to WSL-specific tools or environment variables, you can specify them explicitly.\n\n**Examples:**\n\n- **Running a simple Bash script:**\n\n\n\n- **Providing a specific script path:**\n\n\n\n**Limitations:**\n\n- Access to Windows resources (e.g., files outside WSL) can be challenging and might necessitate alternative approaches depending on the complexity of the task.\n- Scripts involving heavy system interactions with Windows might be better handled using the computer controller extension within Windows itself if possible.\n\n**Let me know:**\n\n1. The content or path of the scripts you want to run.\n2. If the scripts involve any WSL-specific requirements, please share those details.\n\nI'll do my best to assist you with script execution within your WSL environment.\nInvalid parameters: Could not interpret tool use parameters for id tool_0_developer__automation_script: trailing characters at line 1 column 63\n\n◒  Caching cosmic calculations...\n  2025-03-06T10:05:06.221826Z ERROR goose::agents::truncate: Error: Request failed: Request failed with status: 400 Bad Request. Message: Provider returned error\n    at crates/goose/src/agents/truncate.rs:397\n\nRan into this error: Request failed: Request failed with status: 400 Bad Request. Message: Provider returned error.\n\nPlease retry if you think this is a transient or recoverable error.\n( O)> oh is that the issue is that you would have to access resources outside of the wsl and docker?  i tried to give you almost full autonomy in here, but sometimes i use other local models and they arent as trust worthly not to be accidentally destructive.\n◒  Keeping kernel keys...\n  2025-03-06T10:06:38.994014Z ERROR goose::agents::truncate: Error: Request failed: Request failed with status: 400 Bad Request. Message: Provider returned error\n    at crates/goose/src/agents/truncate.rs:397\n\nRan into this error: Request failed: Request failed with status: 400 Bad Request. Message: Provider returned error.\n\nPlease retry if you think this is a transient or recoverable error.\n( O)> test\n◓  Threading thought theories...\n  2025-03-06T10:06:54.915622Z ERROR goose::agents::truncate: Error: Request failed: Request failed with status: 400 Bad Request. Message: Provider returned error\n    at crates/goose/src/agents/truncate.rs:397\n\nRan into this error: Request failed: Request failed with status: 400 Bad Request. Message: Provider returned error.\n\nPlease retry if you think this is a transient or recoverable error.
+do you have access to view the code base for goose? i installed you from cloning the repo instead of the regular bianary, and i am curious to know if you would be to help me build out your extensions settings and configuration, 
+can you list all the directories you do have access to?
+how do i modify the directory permissions?
+do you want to let me know which file directories you have access to, i just increased the locations, and i want to know if it was effective
+i just expanded your access to directories can you tell me what you have access to now so that i can tell if i was effective?
+can you tell me what directories on the file system you can access, specifically if you have access to your code bbase?
+what extensions can you access right now?
+I just updated your permissions to the directories, can you tell me which directories you have access too?
+what can you do?
+can you tell me what directories you can access?
+i just explicitly increased your file system access and rebuilt the container, you should have access to most of this wsl enviornbment including your own code base
+can you name all of the directories specifically?
+if you are having trouble accessing these things, right now would be the ideal time to tell me as i am testing post implimentation and thats the time to fix these things
+what can you do?
+i attempted to elevate your file system access permissions can you verify what directories you have access too?
+i am trying to test the extension configuration  can you create a file called GooseDevtest.txt write on the inside goose test 1, and save the file in /home/scott/goose-ai/goose_data
+do you know where i can find a log with that inforamtion?
+i am trying to test the extension configuration  can you create a file called GooseDevtest.txt write on the inside goose test 1, and save the file in /home/scott/goose-ai/goose_data
+what happened?
+ i am trying to test the extension configuration  can you create a file called GooseDevtest.txt write on the inside goose test 1, and save the file in /home/scott/goose-ai/goose_data
+what can you do:?
+what can you do
+what can you do?
+what extensions can you access?
+can you create a file named ex_test1.txt and write inside this is a system test  and then save it to the goose-ai/workspace folder?
+did you create this file?
+i dont speak chinese ?
+do u remember the test i just asked you to run?
+ok well i need you to remember that the test number is 22
+what was the test number?
+can you create a file named ex_test1.txt and write inside this is a system test  and then save it to the goose-ai/\nworkspace folder?
+i asked you to create the file?
+i think you are having issues with your memory.  can you remember the test number is 22
+where did you store that number ?
+in what database?
+i am just setting this enviornment up an want to run a couple of tests.  can you create a file named ex_test1.txt and write inside this is a system test  and then save it to the goose-ai/\nworkspace folder?
+so do you only run into this test when you call funcitons?
+this is a test
+what can you do
+what can you do?
+what can you do
+what can you do?
+can you assist in setting up your own extensions?
+what can you do?
+what can u do
+what can you do?
