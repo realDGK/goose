@@ -1,0 +1,52 @@
+extensions:
+  Puppeteer:
+    args:
+    - -y
+    - '@modelcontextprotocol/server-puppeteer'
+    cmd: npx
+    enabled: false
+    envs: {}
+    name: Puppeteer
+    timeout: 350
+    type: stdio
+  computercontroller:
+    enabled: false
+    name: computercontroller
+    timeout: 350
+    type: builtin
+  developer:
+    enabled: false
+    name: developer
+    timeout: 350
+    type: builtin
+  memory:
+    enabled: false
+    name: memory
+    timeout: 350
+    type: builtin
+  tutorial:
+    enabled: false
+    name: tutorial
+    timeout: 350
+    type: builtin
+
+providers: 
+  google:
+    api_key: ''
+    default: true
+    model: gemini-2.0-pro-exp-02-05
+    provider_type: google
+  ollama:
+    api_key: ''
+    default: false
+    format: json
+    host: http://localhost:11434
+    model: deepseek-goose-14b-gpu
+    provider_type: ollama
+  openrouter:
+    api_key: ''
+    default: false
+    model: gemini-2.0-pro-exp-02-05
+    provider_type: openrouter
+GOOSE_MODEL: gemini-2.0-pro-exp-02-05
+GOOSE_PROVIDER: openrouter
