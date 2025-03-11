@@ -20,5 +20,5 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-        limits:
-          memory: 32G
+      limits:
+        memory: 32G
