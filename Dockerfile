@@ -1,5 +1,11 @@
 FROM nvidia/cuda:12.4.0-base-ubuntu22.04
 
+# Set a more permissive umask for the entire container.
+# This affects files created by ANY user within the container.
+# 0000 means all permissions (read, write, execute) for everyone.
+# This is VERY permissive.
+RUN umask 0000
+
 # Install minimal dependencies
 RUN apt-get update && apt-get install -y \
     curl wget git build-essential ca-certificates bzip2 software-properties-common \
@@ -34,6 +40,22 @@ RUN chmod +x /entrypoint.sh
 USER scott
 
 WORKDIR /home/scott/goose-ai
+
+# --- Goose AI Installation (Added Section) ---
+# We'll install Goose AI *after* setting the user and workdir
+# This ensures pip installs packages in the user's home directory
+
+# Install Python dependencies (if Goose AI has any)
+# Assuming there's a requirements.txt.  Add this if needed!
+# COPY --chown=scott:scott requirements.txt /home/scott/goose-ai/
+# RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Copy Goose AI files (ensure correct ownership)
+COPY --chown=scott:scott goose-ai /home/scott/goose-ai
+
+# Install Goose AI (using pip install .  --user is important)
+RUN pip install --no-cache-dir --user .
+
 
 EXPOSE 11434
 ENTRYPOINT ["/entrypoint.sh"]

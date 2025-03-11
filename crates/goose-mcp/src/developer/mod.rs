@@ -87,6 +87,12 @@ pub fn load_prompt_files() -> HashMap<String, Prompt> {
     prompts
 }
 
+#[derive(Debug)] // Add this for easy printing if needed
+struct ToolResult {
+    name: String,
+    status: String,
+    value: Vec<Content>,
+}
 pub struct DeveloperRouter {
     tools: Vec<Tool>,
     prompts: Arc<HashMap<String, Prompt>>,
@@ -503,7 +509,7 @@ impl DeveloperRouter {
         ])
     }
 
-    async fn text_editor(&self, params: Value) -> Result<Vec<Content>, ToolError> {
+    async fn text_editor(&self, params: Value) -> Result<ToolResult, ToolError> {
         let command = params
             .get("command")
             .and_then(|v| v.as_str())
@@ -561,19 +567,18 @@ impl DeveloperRouter {
             ))),
         }
     }
-
-    async fn text_editor_view(&self, path: &PathBuf) -> Result<Vec<Content>, ToolError> {
+    async fn text_editor_view(&self, path: &PathBuf) -> Result<ToolResult, ToolError> {
         if path.is_file() {
             // Check file size first (400KB limit)
             const MAX_FILE_SIZE: u64 = 400 * 1024; // 400KB in bytes
             const MAX_CHAR_COUNT: usize = 400_000; // 409600 chars = 400KB
-
+    
             let file_size = std::fs::metadata(path)
                 .map_err(|e| {
                     ToolError::ExecutionError(format!("Failed to get file metadata: {}", e))
                 })?
                 .len();
-
+    
             if file_size > MAX_FILE_SIZE {
                 return Err(ToolError::ExecutionError(format!(
                     "File '{}' is too large ({:.2}KB). Maximum size is 400KB to prevent memory issues.",
@@ -581,14 +586,14 @@ impl DeveloperRouter {
                     file_size as f64 / 1024.0
                 )));
             }
-
+    
             let uri = Url::from_file_path(path)
                 .map_err(|_| ToolError::ExecutionError("Invalid file path".into()))?
                 .to_string();
-
+    
             let content = std::fs::read_to_string(path)
                 .map_err(|e| ToolError::ExecutionError(format!("Failed to read file: {}", e)))?;
-
+    
             let char_count = content.chars().count();
             if char_count > MAX_CHAR_COUNT {
                 return Err(ToolError::ExecutionError(format!(
@@ -598,7 +603,7 @@ impl DeveloperRouter {
                     MAX_CHAR_COUNT
                 )));
             }
-
+    
             let language = lang::get_language_identifier(path);
             let formatted = formatdoc! {"
                 ### {path}
@@ -610,15 +615,21 @@ impl DeveloperRouter {
                 language=language,
                 content=content,
             };
-
+    
             // The LLM gets just a quick update as we expect the file to view in the status
             // but we send a low priority message for the human
-            Ok(vec![
+            let content_vec = vec![
                 Content::embedded_text(uri, content).with_audience(vec![Role::Assistant]),
                 Content::text(formatted)
                     .with_audience(vec![Role::User])
                     .with_priority(0.0),
-            ])
+            ];
+            Ok(ToolResult {
+                name: "developer__text_editor".to_string(),
+                status: "success".to_string(),
+                value: content_vec,
+            })
+    
         } else {
             Err(ToolError::ExecutionError(format!(
                 "The path '{}' does not exist or is not a file.",
@@ -631,20 +642,19 @@ impl DeveloperRouter {
         &self,
         path: &PathBuf,
         file_text: &str,
-    ) -> Result<Vec<Content>, ToolError> {
+    ) -> Result<ToolResult, ToolError> { // Changed return type
         // Normalize line endings based on platform
         let normalized_text = normalize_line_endings(file_text);
-
+    
         // Write to the file
         std::fs::write(path, normalized_text)
             .map_err(|e| ToolError::ExecutionError(format!("Failed to write file: {}", e)))?;
-
+    
         // Try to detect the language from the file extension
         let language = lang::get_language_identifier(path);
-
-        // The assistant output does not show the file again because the content is already in the tool request
-        // but we do show it to the user here
-        Ok(vec![
+    
+        // Construct the content vector
+        let content_vec = vec![
             Content::text(format!("Successfully wrote to {}", path.display()))
                 .with_audience(vec![Role::Assistant]),
             Content::text(formatdoc! {r#"
@@ -659,7 +669,13 @@ impl DeveloperRouter {
             })
             .with_audience(vec![Role::User])
             .with_priority(0.2),
-        ])
+        ];
+    
+        Ok(ToolResult { // Create and return the ToolResult
+            name: "developer__text_editor".to_string(),
+            status: "success".to_string(),
+            value: content_vec,
+        })
     }
 
     async fn text_editor_replace(
@@ -667,7 +683,7 @@ impl DeveloperRouter {
         path: &PathBuf,
         old_str: &str,
         new_str: &str,
-    ) -> Result<Vec<Content>, ToolError> {
+    ) -> Result<ToolResult, ToolError> { // Changed return type
         // Check if file exists and is active
         if !path.exists() {
             return Err(ToolError::InvalidParameters(format!(
@@ -675,11 +691,11 @@ impl DeveloperRouter {
                 path.display()
             )));
         }
-
+    
         // Read content
         let content = std::fs::read_to_string(path)
             .map_err(|e| ToolError::ExecutionError(format!("Failed to read file: {}", e)))?;
-
+    
         // Ensure 'old_str' appears exactly once
         if content.matches(old_str).count() > 1 {
             return Err(ToolError::InvalidParameters(
@@ -692,71 +708,52 @@ impl DeveloperRouter {
                 "'old_str' must appear exactly once in the file, but it does not appear in the file. Make sure the string exactly matches existing file content, including whitespace!".into(),
             ));
         }
-
-        // Save history for undo
-        self.save_file_history(path)?;
-
-        // Replace and write back with platform-specific line endings
+    
+        // Replace and write
         let new_content = content.replace(old_str, new_str);
-        let normalized_content = normalize_line_endings(&new_content);
-        std::fs::write(path, &normalized_content)
+        std::fs::write(path, &new_content)
             .map_err(|e| ToolError::ExecutionError(format!("Failed to write file: {}", e)))?;
-
+    
+        // Save history
+        self.save_file_history(path, content);
+    
         // Try to detect the language from the file extension
-        let language = lang::get_language_identifier(path);
-
-        // Show a snippet of the changed content with context
-        const SNIPPET_LINES: usize = 4;
-
-        // Count newlines before the replacement to find the line number
-        let replacement_line = content
-            .split(old_str)
-            .next()
-            .expect("should split on already matched content")
-            .matches('\n')
-            .count();
-
-        // Calculate start and end lines for the snippet
-        let start_line = replacement_line.saturating_sub(SNIPPET_LINES);
-        let end_line = replacement_line + SNIPPET_LINES + new_str.matches('\n').count();
-
-        // Get the relevant lines for our snippet
-        let lines: Vec<&str> = new_content.lines().collect();
-        let snippet = lines
-            .iter()
-            .skip(start_line)
-            .take(end_line - start_line + 1)
-            .cloned()
-            .collect::<Vec<&str>>()
-            .join("\n");
-
-        let output = formatdoc! {r#"
-            ```{language}
-            {snippet}
-            ```
-            "#,
-            language=language,
-            snippet=snippet
-        };
-
-        let success_message = formatdoc! {r#"
-            The file {} has been edited, and the section now reads:
-            {}
-            Review the changes above for errors. Undo and edit the file again if necessary!
-            "#,
-            path.display(),
-            output
-        };
-
-        Ok(vec![
-            Content::text(success_message).with_audience(vec![Role::Assistant]),
-            Content::text(output)
-                .with_audience(vec![Role::User])
-                .with_priority(0.2),
-        ])
+        let language = get_language_identifier(path);
+    
+        let content_vec =  vec![
+            Content::text(formatdoc! {"
+                The content of {path} has been edited, and the section that previously read:
+    
+                ```
+                {old_str}
+                ```
+    
+                now reads:
+    
+                ```
+                {new_str}
+                ```
+                ", path=path.display(), old_str=old_str, new_str=new_str}).with_audience(vec![Role::Assistant]),
+            Content::text(formatdoc! {"
+                ### {path}
+                ```{language}
+                {content}
+                ```
+                ",
+                path=path.display(),
+                language=language,
+                content=new_content,
+            }).with_audience(vec![Role::User]).with_priority(0.2),
+        ];
+    
+        Ok(ToolResult{
+            name: "developer__text_editor".to_string(),
+            status: "success".to_string(),
+            value: content_vec
+        })
     }
 
-    async fn text_editor_undo(&self, path: &PathBuf) -> Result<Vec<Content>, ToolError> {
+    async fn text_editor_undo(&self, path: &PathBuf) -> Result<ToolResult, ToolError> {
         let mut history = self.file_history.lock().unwrap();
         if let Some(contents) = history.get_mut(path) {
             if let Some(previous_content) = contents.pop() {
@@ -764,7 +761,13 @@ impl DeveloperRouter {
                 std::fs::write(path, previous_content).map_err(|e| {
                     ToolError::ExecutionError(format!("Failed to write file: {}", e))
                 })?;
-                Ok(vec![Content::text("Undid the last edit")])
+ 
+                let content_vec = vec![Content::text("Undid the last edit")];
+                Ok(ToolResult{
+                    name: "developer__text_editor".to_string(),
+                    status: "success".to_string(),
+                    value: content_vec
+                })
             } else {
                 Err(ToolError::InvalidParameters(
                     "No edit history available to undo".into(),
@@ -776,7 +779,6 @@ impl DeveloperRouter {
             ))
         }
     }
-
     fn save_file_history(&self, path: &PathBuf) -> Result<(), ToolError> {
         let mut history = self.file_history.lock().unwrap();
         let content = if path.exists() {
@@ -984,7 +986,10 @@ impl Router for DeveloperRouter {
         Box::pin(async move {
             match tool_name.as_str() {
                 "shell" => this.bash(arguments).await,
-                "text_editor" => this.text_editor(arguments).await,
+                "text_editor" => {
+                    let result: ToolResult = this.text_editor(arguments).await?;
+                    Ok(result.value)
+                },
                 "list_windows" => this.list_windows(arguments).await,
                 "screen_capture" => this.screen_capture(arguments).await,
                 "image_processor" => this.image_processor(arguments).await,
@@ -992,7 +997,7 @@ impl Router for DeveloperRouter {
             }
         })
     }
-
+    
     // TODO see if we can make it easy to skip implementing these
     fn list_resources(&self) -> Vec<Resource> {
         Vec::new()

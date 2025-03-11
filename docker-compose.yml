@@ -1,24 +1,34 @@
-version: "3.9"
 services:
-  integrated_llm:
+  integrated_llm:  # Goose AI
     build: .
     container_name: integrated_llm
     volumes:
-      - ./:/home/scott/goose-ai:rw
-      - ./ollama_data:/home/scott/.ollama:rw
+      - ./:/home/scott/goose-ai:rw  # Bind mount Goose AI project
     ports:
-      - "11434:11434"
+      - "8000:8000"  #  Goose AI API/UI port (CHANGE IF NEEDED)
     environment:
-      - OLLAMA_HOST=0.0.0.0:11434
-      - OLLAMA_CUDA=1
-      - NVIDIA_VISIBLE_DEVICES=all
+      - OLLAMA_HOST=ollama_container:11434  # Connect to Ollama
+      - NVIDIA_VISIBLE_DEVICES=all      # GPU access for Goose AI
     restart: unless-stopped
-    deploy:
+    depends_on:
+      - ollama_container
+
+  ollama_container:  # Ollama
+    image: ollama/ollama
+    volumes:
+      - ollama_models:/root/.ollama    # Ollama models (Docker volume)
+    ports:
+      - "11434:11434"  # Expose Ollama API (for testing/direct access)
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all      # GPU access for Ollama
+    deploy:  # GPU access configuration (Docker Compose v3) - REQUIRED for GPU
       resources:
         reservations:
           devices:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-      limits:
-        memory: 32G
+    restart: unless-stopped
+
+volumes:
+  ollama_models: # Named volume for Ollama
